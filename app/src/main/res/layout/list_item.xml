@@ -1,0 +1,59 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="left"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/item_image"
+        android:layout_width="106dp"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/sample_book"
+        android:src="@drawable/book" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="left"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/item_text"
+            android:layout_width="157dp"
+            android:layout_height="wrap_content"
+            android:backgroundTintMode="src_over"
+            android:breakStrategy="simple"
+            android:gravity="bottom|left"
+            android:hapticFeedbackEnabled="false"
+            android:shadowColor="#FFFFFF"
+            android:text="@string/sample_book"
+            android:textDirection="locale"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/item_tags"
+            android:layout_width="362dp"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:text="C#, Unity, GameDev"
+            android:textSize="16sp"
+            android:textStyle="italic" />
+
+        <RatingBar
+            android:id="@+id/ratingBar"
+            style="@android:style/Widget.Holo.RatingBar.Indicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:max="5"
+            android:numStars="5"
+            android:progress="4"
+            android:progressTint="#4ADAFF"
+            android:rating="4" />
+
+    </LinearLayout>
+
+</LinearLayout>
