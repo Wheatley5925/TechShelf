@@ -6,11 +6,18 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -41,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
             // Добавьте обработчик нажатия
             listItem.setOnClickListener(v -> {
                 // Вызовите метод для отображения информации
-                showBookInfo("Книга " + (number_book + 1), "Описание для книги " + (number_book + 1), R.drawable.book);
+                showBookInfoBottomSheet(number_book + 1); // Pass the book number
             });
 
             // Добавляем элемент в LinearLayout
@@ -49,30 +56,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showBookInfo(String title, String description, int imageResId) {
-        BottomSheetDialog dialog = new BottomSheetDialog(this);
-        LayoutInflater inflater = getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.book_info, null);
-        dialog.setContentView(dialogView);
-
-        // Настраиваем элементы внутри диалога
-        ImageView bookImage = dialogView.findViewById(R.id.dialog_book_image);
-        TextView bookTitle = dialogView.findViewById(R.id.dialog_book_title);
-        TextView bookDescription = dialogView.findViewById(R.id.dialog_book_description);
-
-        // Устанавливаем данные
-        bookImage.setImageResource(imageResId);
-        bookTitle.setText(title);
-        bookDescription.setText(description);
-
-        Log.d("showBookInfo", "Title: " + title);
-        Log.d("showBookInfo", "Description: " + description);
-        Log.d("showBookInfo", "ImageResId: " + imageResId);
-
-        BottomSheetBehavior mBehavior = BottomSheetBehavior.from((View) dialogView.getParent());
-
-        // Показываем BottomSheetDialog
-        dialog.show();
+    private void showBookInfoBottomSheet(int i) {
+        // Создаем BottomSheetDialog
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(R.layout.book_info);
+        bottomSheetDialog.setCancelable(true);
+        bottomSheetDialog.setCanceledOnTouchOutside(true);
+        bottomSheetDialog.show();
     }
 }
 
