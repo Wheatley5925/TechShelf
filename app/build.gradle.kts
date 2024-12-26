@@ -32,7 +32,7 @@ android {
 }
 
 dependencies {
-
+    implementation("com.aspose:aspose-words:24.6")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

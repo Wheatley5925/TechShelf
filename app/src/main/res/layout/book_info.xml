@@ -7,10 +7,12 @@
     android:background="@android:color/white">
 
     <!-- ImageView -->
+
     <ImageView
         android:id="@+id/dialog_book_image"
         android:layout_width="0dp"
         android:layout_height="150dp"
+        android:scaleType="centerCrop"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -42,28 +44,72 @@
                 android:layout_height="wrap_content"
                 android:text="Book Title"
                 android:textAlignment="center"
-                android:textSize="24sp" />
-
-            <RatingBar
-                android:id="@+id/ratingBar2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:numStars="5"
-                android:rating="4"
-                android:layout_gravity="center" />
+                android:textSize="34sp"
+                android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/dialog_book_description"
+                android:id="@+id/dialog_book_author"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Description text goes here..."
-                android:textSize="16sp" />
+                android:text="by: Author Name"
+                android:textAlignment="center"
+                android:textSize="20sp"
+                android:textStyle="italic" />
 
-            <Button
-                android:id="@+id/button2"
+            <TextView
+                android:id="@+id/dialog_book_tags"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Download" />
+                android:text="C#, GameDev, Unity"
+                android:textAlignment="center"
+                android:textSize="20sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/dialog_book_desc"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="clip_horizontal"
+                android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam tortor tortor, rutrum nec lectus eget, faucibus ornare risus. Pellentesque fringilla ultrices felis vel consectetur. Aliquam feugiat diam a quam efficitur, sed rutrum massa volutpat. Nam ut est sit amet elit dapibus commodo vel sit amet nunc. Nam id ornare felis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Maecenas quis sapien metus. Pellentesque porttitor, tortor quis luctus convallis, magna elit elementum justo, et venenatis massa ligula vel turpis. Vestibulum blandit tortor eget pretium dignissim. Quisque aliquam quam vel fringilla feugiat. Aliquam consequat dignissim eros, ac commodo nisl aliquet non."
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/button"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="290dp"
+                    android:layout_height="match_parent"
+                    android:stateListAnimator="@android:anim/accelerate_decelerate_interpolator"
+                    android:text="Start reading"
+                    android:textColor="#FFFFFF" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <ToggleButton
+                    android:id="@+id/toggleButton"
+                    style="@style/StarToggleButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:checked="false"
+                    android:stateListAnimator="@android:anim/slide_in_left"
+                    android:textOff="☆"
+                    android:textOn="★"
+                    android:textSize="20sp" />
+
+            </LinearLayout>
+
         </LinearLayout>
 <!--    </ScrollView>-->
 

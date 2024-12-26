@@ -1,0 +1,28 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Нажатое состояние (пастельный фиолетовый фон) -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#D1B3FF"/>  <!-- Пастельный фиолетовый -->
+            <corners android:radius="12dp"/>
+            <stroke android:width="2dp" android:color="#B39DDB"/>  <!-- Темная фиолетовая обводка -->
+        </shape>
+    </item>
+
+    <!-- Состояние фокуса (для клавиатуры или контроллеров) -->
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#E6DDFF"/>  <!-- Светлый фиолетовый для фокуса -->
+            <corners android:radius="12dp"/>
+            <stroke android:width="2dp" android:color="#B39DDB"/>
+        </shape>
+    </item>
+
+    <!-- Обычное состояние (белый фон с фиолетовой обводкой) -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF"/>  <!-- Белый фон -->
+            <corners android:radius="12dp"/>
+            <stroke android:width="2dp" android:color="#D1B3FF"/>  <!-- Светло-фиолетовая обводка -->
+        </shape>
+    </item>
+</selector>
