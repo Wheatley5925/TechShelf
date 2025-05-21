@@ -29,6 +29,7 @@
             android:breakStrategy="simple"
             android:gravity="bottom|left"
             android:hapticFeedbackEnabled="false"
+            android:maxLines="2"
             android:shadowColor="#FFFFFF"
             android:text="@string/sample_book"
             android:textDirection="locale"
@@ -41,6 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="left"
+            android:maxLines="1"
             android:text="by: Author Name"
             android:textSize="16sp"
             android:textStyle="italic" />
@@ -50,6 +52,7 @@
             android:layout_width="292dp"
             android:layout_height="wrap_content"
             android:gravity="left"
+            android:maxLines="2"
             android:text="C#, Unity, GameDev"
             android:textSize="16sp"
             android:textStyle="italic" />

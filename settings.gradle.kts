@@ -1,29 +1,24 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google()
         mavenCentral()
+        mavenLocal()
         gradlePluginPortal()
+        maven { url = uri("https://jitpack.io") } // JitPack for missing dependencies
+        maven { url = uri("https://groovy.jfrog.io/artifactory/plugins-release") } // Needed for PdfBox-Android
     }
 }
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        maven { url = uri("https://s3.amazonaws.com/mirego-maven/public") }
         google()
         mavenCentral()
-        maven {
-            url = uri("https://repository.aspose.com/repo/")
-        }
+        mavenLocal()
+        gradlePluginPortal()
+        maven { url = uri("https://jitpack.io") } // JitPack for missing dependencies
+        maven { url = uri("https://groovy.jfrog.io/artifactory/plugins-release") } // Needed for PdfBox-Android
     }
 }
-
-rootProject.name = "My Application"
 include(":app")
-include(":sample")
-include(":folioreader")

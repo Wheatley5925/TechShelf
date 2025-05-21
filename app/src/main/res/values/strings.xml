@@ -1,4 +1,7 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">TechShelf</string>
     <string name="sample_book">Sample Book</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_main2">MainActivity2</string>
+    <string name="default_web_client_id">YOUR_WEB_CLIENT_ID.apps.googleusercontent.com</string>
 </resources>

@@ -1,14 +1,39 @@
 [versions]
-agp = "8.7.2"
+agp = "8.9.0"
+androidPdfViewer = "3.2.0"
+androidPdfViewerVersion = "3.2.0-beta.1"
+desugar_jdk_libs = "2.1.5"
+firebaseBom = "33.10.0"
+folioreader = "0.6.3"
+folioreaderVersion = "0.5.4"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
 material = "1.12.0"
-activity = "1.9.2"
-constraintlayout = "2.1.4"
+activity = "1.10.1"
+constraintlayout = "2.2.1"
+pdfboxAndroid = "2.0.27.0"
+photoview = "2.3.0"
+runner = "1.0.2"
+espressoCoreVersion = "3.0.2"
+appcompatV7 = "28.0.0"
+googleGmsGoogleServices = "4.4.2"
+firebaseDatabase = "21.0.0"
+firebaseAuth = "23.2.0"
+kotlin = "2.0.21"
+lifecycleRuntimeKtx = "2.6.1"
+activityCompose = "1.10.1"
+composeBom = "2024.09.00"
 
 [libraries]
+android-pdf-viewer = { module = "com.github.barteksc:android-pdf-viewer", version = "2.8.2" }
+android-pdf-viewer-v320beta1 = { module = "com.github.barteksc:android-pdf-viewer", version.ref = "androidPdfViewerVersion" }
+desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+folioreader = { module = "com.jideguru:folioreader", version.ref = "folioreader" }
+folioreader-folioreader = { module = "com.folioreader:folioreader", version.ref = "folioreaderVersion" }
+google-firebase-auth = { module = "com.google.firebase:firebase-auth", version = "23.2.0" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -16,7 +41,27 @@ appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "a
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "pdfboxAndroid" }
+photoview = { module = "com.github.chrisbanes:PhotoView", version.ref = "photoview" }
+runner = { group = "com.android.support.test", name = "runner", version.ref = "runner" }
+android-espresso-core = { group = "com.android.support.test.espresso", name = "espresso-core", version.ref = "espressoCoreVersion" }
+appcompat-v7 = { group = "com.android.support", name = "appcompat-v7", version.ref = "appcompatV7" }
+firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+ui = { group = "androidx.compose.ui", name = "ui" }
+ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+material3 = { group = "androidx.compose.material3", name = "material3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
