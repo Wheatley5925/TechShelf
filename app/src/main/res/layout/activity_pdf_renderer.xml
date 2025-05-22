@@ -31,20 +31,9 @@
 
             <Button
                 android:id="@+id/btnBookmark"
-                android:layout_width="wrap_content"
+                android:layout_width="177dp"
                 android:layout_height="wrap_content"
                 android:text="Bookmark" />
-
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <Button
-                android:id="@+id/btnFind"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Find" />
 
             <Space
                 android:layout_width="wrap_content"

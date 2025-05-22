@@ -49,6 +49,9 @@
             android:name=".PdfViewerActivity"
             android:exported="true" />
         <activity
+            android:name=".PreferenceActivity"
+            android:exported="true" />
+        <activity
             android:name=".MainActivity"
             android:exported="true" >
             <intent-filter>

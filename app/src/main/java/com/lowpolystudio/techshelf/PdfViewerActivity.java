@@ -6,28 +6,47 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
+import android.util.Pair;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import com.github.barteksc.pdfviewer.PDFView;
 import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PdfViewerActivity extends AppCompatActivity {
 
+    public FirebaseFirestore db;
+    public FirebaseUser user;
     private static String PDF_FILE_NAME = "C_Sharp_Programming.pdf";
     private static PDFView pdfView;
     private static int bookId = 0;
@@ -37,25 +56,26 @@ public class PdfViewerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        user = auth.getCurrentUser();
+        db = FirebaseFirestore.getInstance();
+
         setContentView(R.layout.activity_pdf_renderer);
 
         pdfView = findViewById(R.id.pdfView);
         Button btnExit = findViewById(R.id.btnExit);
         Button btnBookmark = findViewById(R.id.btnBookmark);
-        Button btnFind = findViewById(R.id.btnFind);
         Button btnPage = findViewById(R.id.btnPage);
 
         try {
             File file = getFileFromAssets(this, "books/" + PDF_FILE_NAME);
-            if (file != null) {
-                openPdf(file);
-            }
+            openPdf(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
         btnExit.setOnClickListener(v -> exitBookView());
-        btnBookmark.setOnClickListener(v -> Toast.makeText(this, "Bookmark added!", Toast.LENGTH_SHORT).show());
-        btnFind.setOnClickListener(v -> Toast.makeText(this, "Find feature not implemented yet", Toast.LENGTH_SHORT).show());
+        btnBookmark.setOnClickListener(v -> showBookmarkPopup());
         btnPage.setOnClickListener(v -> showPageInputDialog());
 
     }
@@ -201,4 +221,140 @@ public class PdfViewerActivity extends AppCompatActivity {
                     callback.onResult(null);
                 });
     }
+
+    public void showBookmarkPopup() {
+        View popupView = LayoutInflater.from(this).inflate(R.layout.dialog_bookmarks, null);
+        PopupWindow popupWindow = new PopupWindow(popupView,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true);
+
+        popupWindow.setElevation(10);
+        popupWindow.showAtLocation(findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
+        FloatingActionButton bookmarkAdd = popupView.findViewById(R.id.bookmark_add_button);
+
+        bookmarkAdd.setOnClickListener(v -> {
+            addBookmark(pdfView.getCurrentPage(), popupView, popupWindow);
+        });
+
+        loadBookmarksInto(popupView, popupWindow);
+    }
+
+    private void loadBookmarksInto(View popupView, PopupWindow popupWindow) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String bookId = "" + this.bookId; // get this from your context
+
+        LinearLayout container = popupView.findViewById(R.id.bookmark_list_container);
+
+        container.removeAllViews();
+        assert user != null;
+        db.collection("users")
+                .document(user.getUid())
+                .collection("bookmarks")
+                .document(bookId)
+                .collection("pages")
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .get()
+                .addOnSuccessListener(query -> {
+                    for (DocumentSnapshot doc : query) {
+                        Long page = doc.getLong("page");
+                        Timestamp timestamp = doc.getTimestamp("timestamp");
+
+                        if (page == null || timestamp == null) continue;
+
+                        View bookmarkView = LayoutInflater.from(this).inflate(R.layout.bookmark_item, null);
+                        TextView bookmarkText = bookmarkView.findViewById(R.id.bookmark_text);
+                        ImageButton bookmarkDelete = bookmarkView.findViewById(R.id.delete_button);
+
+                        bookmarkText.setText("Page " + (page + 1) + " — " +
+                                android.text.format.DateFormat.format("dd MMM yyyy HH:mm",
+                                        timestamp.toDate()));
+                        bookmarkText.setPadding(8, 16, 8, 16);
+                        bookmarkView.setClickable(true);
+                        bookmarkView.setBackgroundResource(android.R.drawable.list_selector_background);
+
+                        int goToPage = page.intValue();
+                        bookmarkView.setOnClickListener(v -> {
+                            pdfView.jumpTo(goToPage, true); // Your existing method
+                            popupWindow.dismiss();
+                        });
+
+                        bookmarkDelete.setOnClickListener(v -> {
+                            db.collection("users")
+                                    .document(user.getUid())
+                                    .collection("bookmarks")
+                                    .document(bookId)
+                                    .collection("pages")
+                                    .document(doc.getId())
+                                    .delete();
+                            container.removeView(bookmarkView);
+                        });
+
+                        container.addView(bookmarkView);
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Log.e("Bookmarks", "Failed to load bookmarks", e));
+    }
+
+    private void addBookmark(int page, View popupView, PopupWindow popupWindow) {
+        LinearLayout container = popupView.findViewById(R.id.bookmark_list_container);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        FieldValue time = FieldValue.serverTimestamp();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("page", page);
+        data.put("timestamp", time);
+
+        View bookmarkView = LayoutInflater.from(this).inflate(R.layout.bookmark_item, null);
+
+        assert user != null;
+        db.collection("users")
+                .document(user.getUid())
+                .collection("bookmarks")
+                .document("" + bookId)
+                .collection("pages")
+                .add(data)
+                .addOnSuccessListener(r -> {
+                    r.get().addOnSuccessListener(s -> {
+                        Timestamp timestamp = s.getTimestamp("timestamp");
+
+                        TextView bookmarkText = bookmarkView.findViewById(R.id.bookmark_text);
+                        ImageButton bookmarkDelete = bookmarkView.findViewById(R.id.delete_button);
+
+                        bookmarkText.setText("Page " + (page + 1) + " — " +
+                                android.text.format.DateFormat.format("dd MMM yyyy HH:mm",
+                                        timestamp.toDate()));
+                        bookmarkText.setPadding(8, 16, 8, 16);
+                        bookmarkView.setClickable(true);
+                        bookmarkView.setBackgroundResource(android.R.drawable.list_selector_background);
+
+                        bookmarkView.setOnClickListener(v -> {
+                            pdfView.jumpTo(page, true); // Your existing method
+                            popupWindow.dismiss();
+                        });
+
+                        bookmarkDelete.setOnClickListener(v -> {
+                            db.collection("users")
+                                    .document(user.getUid())
+                                    .collection("bookmarks")
+                                    .document(""+bookId)
+                                    .collection("pages")
+                                    .document(r.getId())
+                                    .delete();
+                            container.removeView(bookmarkView);
+                        });
+                    });
+
+                    container.addView(bookmarkView);
+                })
+                .addOnFailureListener(e -> Log.e("Bookmark", "Failed", e));
+
+
+
+    }
+
 }

@@ -41,27 +41,36 @@ public class FavoritesFragment extends Fragment implements MainActivity.Fragment
             if (favoritesContainer != null) {
                 favoritesContainer.removeAllViews();  // Очищаем перед добавлением новых книг
                 ((MainActivity) requireActivity()).getFavoriteBookIds(fav_ids -> {
-                    for (String id : fav_ids) {
-                        int i = Integer.parseInt(id);
-                        View listItem = LayoutInflater.from(getContext())
-                                .inflate(R.layout.list_item, favoritesContainer, false);
+                    if (fav_ids.isEmpty()) {
+                        TextView emptiness = new TextView(getActivity());
+                        emptiness.setText("You didn't add any books to favorites yet...");
+                        emptiness.setGravity(17);
 
-                        ImageView imageView = listItem.findViewById(R.id.item_image);
-                        TextView textTitle = listItem.findViewById(R.id.item_title);
-                        TextView textAuthor = listItem.findViewById(R.id.item_author);
-                        TextView textTags = listItem.findViewById(R.id.item_tags);
+                        favoritesContainer.addView(emptiness);
+                    }
+                    else {
+                        for (String id : fav_ids) {
+                            int i = Integer.parseInt(id);
+                            View listItem = LayoutInflater.from(getContext())
+                                    .inflate(R.layout.list_item, favoritesContainer, false);
 
-                        textTitle.setText(((MainActivity) requireActivity()).db_manager.getBookField(i, "Title"));
-                        textAuthor.setText("by: " + ((MainActivity) requireActivity()).db_manager.getBookField(i, "Author"));
-                        ((MainActivity) requireActivity()).setBookCover(getContext(), imageView,
-                                ((MainActivity) requireActivity()).db_manager.getBookCover(i));
-                        textTags.setText(((MainActivity) requireActivity()).db_manager.getBookTags(i));
+                            ImageView imageView = listItem.findViewById(R.id.item_image);
+                            TextView textTitle = listItem.findViewById(R.id.item_title);
+                            TextView textAuthor = listItem.findViewById(R.id.item_author);
+                            TextView textTags = listItem.findViewById(R.id.item_tags);
 
-                        listItem.setOnClickListener(v -> {
-                            ((MainActivity) requireActivity()).showBookInfoBottomSheet(i);
-                        });
+                            textTitle.setText(((MainActivity) requireActivity()).db_manager.getBookField(i, "Title"));
+                            textAuthor.setText("by: " + ((MainActivity) requireActivity()).db_manager.getBookField(i, "Author"));
+                            ((MainActivity) requireActivity()).setBookCover(getContext(), imageView,
+                                    ((MainActivity) requireActivity()).db_manager.getBookCover(i));
+                            textTags.setText(((MainActivity) requireActivity()).db_manager.getBookTags(i));
 
-                        favoritesContainer.addView(listItem);
+                            listItem.setOnClickListener(v -> {
+                                ((MainActivity) requireActivity()).showBookInfoBottomSheet(i);
+                            });
+
+                            favoritesContainer.addView(listItem);
+                        }
                     }
                     ProgressBar progressBar = getView().findViewById(R.id.favorites_loading);
                     progressBar.setVisibility(View.GONE);

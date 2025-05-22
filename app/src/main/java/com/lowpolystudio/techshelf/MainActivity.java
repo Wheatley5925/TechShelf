@@ -33,6 +33,7 @@ import android.widget.ToggleButton;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -85,7 +86,21 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        db.collection("users").document(user.getUid())
+                .collection("preferences").document("tags")
+                .get().addOnSuccessListener(doc -> {
+                    if (!doc.exists()) {
+                        startActivity(new Intent(this, PreferenceActivity.class));
+                    }
+                });
+
         setContentView(R.layout.activity_main);
+
+        List<String> langs = Arrays.asList("Java", "Python", "C#");
+        List<String> purps = Arrays.asList("Web", "Gamedev");
+
+        List<Integer> bookIds = db_manager.getBookIdsForPreferences(langs, purps);
+        Log.d("BOOK_RESULTS", "Book IDs: " + bookIds);
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setOnItemSelectedListener(item -> {
@@ -289,6 +304,42 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    public void loadBooksByUserPreferences(Callback<List<Integer>> callback) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+
+        firestore.collection("users")
+                .document(user.getUid())
+                .collection("preferences")
+                .document("tags")
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        List<String> languages = (List<String>) doc.get("languages");
+                        List<String> purposes = (List<String>) doc.get("purposes");
+
+                        if (languages != null && purposes != null &&
+                                !languages.isEmpty() && !purposes.isEmpty()) {
+
+                            List<Integer> bookIds = db_manager.getBookIdsForPreferences(languages, purposes);
+                            callback.onResult(bookIds);
+
+                        } else {
+                            Log.w("Preferences", "Empty preferences found");
+                            callback.onResult(Collections.emptyList());
+                        }
+                    } else {
+                        Log.w("Preferences", "No preferences found in Firestore");
+                        callback.onResult(Collections.emptyList());
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Preferences", "Failed to load preferences", e);
+                    callback.onResult(Collections.emptyList());
+                });
+    }
+
 
     public interface FragmentDataListener {
         void onDataLoaded();

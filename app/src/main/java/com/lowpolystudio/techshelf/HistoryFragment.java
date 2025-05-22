@@ -44,47 +44,57 @@ public class HistoryFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     historyContainer.removeAllViews();
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        Long bookId = doc.getLong("bookId");
-                        Long lastPage = doc.getLong("lastPage");
-                        Long pageCount = doc.getLong("pageCount");
-                        Timestamp timestamp = doc.getTimestamp("timestamp");
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        TextView emptiness = new TextView(getActivity());
+                        emptiness.setText("Start reading to have reading history 😉");
+                        emptiness.setGravity(17);
 
-                        // Skip if null
-                        if (lastPage == null || timestamp == null) continue;
+                        historyContainer.addView(emptiness);
+                    }
+                    else {
 
-                        int bookIndex = bookId.intValue();
+                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                            Long bookId = doc.getLong("bookId");
+                            Long lastPage = doc.getLong("lastPage");
+                            Long pageCount = doc.getLong("pageCount");
+                            Timestamp timestamp = doc.getTimestamp("timestamp");
 
-                        View listItem = LayoutInflater.from(getContext())
-                                .inflate(R.layout.history_item, historyContainer, false);
+                            // Skip if null
+                            if (lastPage == null || timestamp == null) continue;
 
-                        ImageView imageView = listItem.findViewById(R.id.item_image);
-                        TextView textTitle = listItem.findViewById(R.id.item_title);
-                        TextView textLastOpened = listItem.findViewById(R.id.item_date);
-                        ProgressBar progressBar = listItem.findViewById(R.id.progressMeter);
-                        TextView textProgress = listItem.findViewById(R.id.progressText);
+                            int bookIndex = bookId.intValue();
 
-                        String title = ((MainActivity) requireActivity()).db_manager.getBookField(bookIndex, "Title");
+                            View listItem = LayoutInflater.from(getContext())
+                                    .inflate(R.layout.history_item, historyContainer, false);
 
-                        textTitle.setText(title);
-                        textLastOpened.setText("Last opened: " +
-                                android.text.format.DateFormat.format("dd MMM yyyy HH:mm", timestamp.toDate()));
+                            ImageView imageView = listItem.findViewById(R.id.item_image);
+                            TextView textTitle = listItem.findViewById(R.id.item_title);
+                            TextView textLastOpened = listItem.findViewById(R.id.item_date);
+                            ProgressBar progressBar = listItem.findViewById(R.id.progressMeter);
+                            TextView textProgress = listItem.findViewById(R.id.progressText);
 
-                        int lastPageInt = lastPage.intValue();
-                        int progress = (int) ((lastPageInt / (float) pageCount) * 100);
+                            String title = ((MainActivity) requireActivity()).db_manager.getBookField(bookIndex, "Title");
 
-                        progressBar.setProgress(progress, true);
-                        textProgress.setText(lastPageInt + 1 + " / " + pageCount + "  ");
+                            textTitle.setText(title);
+                            textLastOpened.setText("Last opened: " +
+                                    android.text.format.DateFormat.format("dd MMM yyyy HH:mm", timestamp.toDate()));
 
-                        ((MainActivity) requireActivity()).setBookCover(getContext(), imageView,
-                                ((MainActivity) requireActivity()).db_manager.getBookCover(bookIndex));
+                            int lastPageInt = lastPage.intValue();
+                            int progress = (int) ((lastPageInt / (float) pageCount) * 100);
 
-                        listItem.setOnClickListener(v -> {
-                            var file_name = ((MainActivity) requireActivity()).db_manager.getBookField(bookIndex, "FileName");
+                            progressBar.setProgress(progress, true);
+                            textProgress.setText(lastPageInt + 1 + " / " + pageCount + "  ");
+
+                            ((MainActivity) requireActivity()).setBookCover(getContext(), imageView,
+                                    ((MainActivity) requireActivity()).db_manager.getBookCover(bookIndex));
+
+                            listItem.setOnClickListener(v -> {
+                                var file_name = ((MainActivity) requireActivity()).db_manager.getBookField(bookIndex, "FileName");
                                 PdfViewerActivity.start(requireActivity(), file_name, bookIndex);
                             });
 
-                        historyContainer.addView(listItem);
+                            historyContainer.addView(listItem);
+                        }
                     }
                     ProgressBar progressBar = getView().findViewById(R.id.history_loading);
                     progressBar.setVisibility(View.GONE);

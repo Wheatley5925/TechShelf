@@ -26,7 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTintMode="src_over"
-            android:breakStrategy="simple"
+            android:breakStrategy="high_quality"
             android:gravity="bottom|left"
             android:hapticFeedbackEnabled="false"
             android:maxLines="2"

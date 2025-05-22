@@ -38,27 +38,36 @@ public class SuggestedFragment extends Fragment implements MainActivity.Fragment
         if (getView() != null) {
             if (linearLayout != null) {
                 linearLayout.removeAllViews();  // Очищаем перед добавлением новых книг
-                for (int i = 0; i < ((MainActivity) requireActivity()).db_manager.bookNumber(); i++) {
-                    View listItem = LayoutInflater.from(getContext())
-                            .inflate(R.layout.list_item, linearLayout, false);
+                ((MainActivity) requireActivity()).loadBooksByUserPreferences(l -> {
+                    if (l.isEmpty()) {
+                        TextView emptiness = new TextView(getActivity());
+                        emptiness.setText("We couldn't suggest anything for you to read... Yet");
+                        emptiness.setGravity(17);
 
-                    ImageView imageView = listItem.findViewById(R.id.item_image);
-                    TextView textTitle = listItem.findViewById(R.id.item_title);
-                    TextView textAuthor = listItem.findViewById(R.id.item_author);
-                    TextView textTags = listItem.findViewById(R.id.item_tags);
+                        linearLayout.addView(emptiness);
+                    }
+                    for (int id : l) {
+                       View listItem = LayoutInflater.from(getContext())
+                               .inflate(R.layout.list_item, linearLayout, false);
 
-                    textTitle.setText(((MainActivity) requireActivity()).db_manager.getBookField(i, "Title"));
-                    textAuthor.setText("by: " + ((MainActivity) requireActivity()).db_manager.getBookField(i, "Author"));
-                    ((MainActivity) requireActivity()).setBookCover(getContext(), imageView,
-                            ((MainActivity) requireActivity()).db_manager.getBookCover(i));
-                    textTags.setText(((MainActivity) requireActivity()).db_manager.getBookTags(i));
-                    int number_book = i;
-                    listItem.setOnClickListener(v -> {
-                        ((MainActivity) requireActivity()).showBookInfoBottomSheet(number_book);
-                    });
+                       ImageView imageView = listItem.findViewById(R.id.item_image);
+                       TextView textTitle = listItem.findViewById(R.id.item_title);
+                       TextView textAuthor = listItem.findViewById(R.id.item_author);
+                       TextView textTags = listItem.findViewById(R.id.item_tags);
 
-                    linearLayout.addView(listItem);
-                }
+                       textTitle.setText(((MainActivity) requireActivity()).db_manager.getBookField(id, "Title"));
+                       textAuthor.setText("by: " + ((MainActivity) requireActivity()).db_manager.getBookField(id, "Author"));
+                       ((MainActivity) requireActivity()).setBookCover(getContext(), imageView,
+                               ((MainActivity) requireActivity()).db_manager.getBookCover(id));
+                       textTags.setText(((MainActivity) requireActivity()).db_manager.getBookTags(id));
+                       listItem.setOnClickListener(v -> {
+                           ((MainActivity) requireActivity()).showBookInfoBottomSheet(id);
+                       });
+
+                       linearLayout.addView(listItem);
+                   }
+
+                });
             }
         }
     }

@@ -28,6 +28,7 @@ public class ProfileFragment extends Fragment {
 
         TextView emailTextView = view.findViewById(R.id.emailTextView);
         Button logoutButton = view.findViewById(R.id.logoutButton);
+        Button prefChangeButton = view.findViewById(R.id.pref_change_button);
 
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
@@ -38,6 +39,10 @@ public class ProfileFragment extends Fragment {
             auth.signOut();
             startActivity(new Intent(getActivity(), LoginActivity.class));
             requireActivity().finish(); // close MainActivity
+        });
+
+        prefChangeButton.setOnClickListener(v -> {
+            startActivity(new Intent(requireActivity(), PreferenceActivity.class));
         });
 
         return view;
