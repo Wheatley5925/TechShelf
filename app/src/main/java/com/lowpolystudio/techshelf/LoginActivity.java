@@ -11,9 +11,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.*;
 
+import java.util.Objects;
+
 public class LoginActivity extends AppCompatActivity {
 
-    private static final int RC_SIGN_IN = 1001;
     private FirebaseAuth auth;
 
     @Override
@@ -46,7 +47,7 @@ public class LoginActivity extends AppCompatActivity {
                             startActivity(new Intent(this, MainActivity.class));
                             finish();
                         } else {
-                            Toast.makeText(this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Login failed: " + Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
         });
@@ -66,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
                             startActivity(new Intent(this, MainActivity.class));
                             finish();
                         } else {
-                            Toast.makeText(this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Registration failed: " + Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
         });

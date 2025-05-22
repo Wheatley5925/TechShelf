@@ -29,15 +29,14 @@ public class SuggestedFragment extends Fragment implements MainActivity.Fragment
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        onDataLoaded();  // Вызов после создания View
+        onDataLoaded();
     }
 
-    // Метод для добавления книг в LinearLayout
     @Override
     public void onDataLoaded() {
         if (getView() != null) {
             if (linearLayout != null) {
-                linearLayout.removeAllViews();  // Очищаем перед добавлением новых книг
+                linearLayout.removeAllViews();
                 ((MainActivity) requireActivity()).loadBooksByUserPreferences(l -> {
                     if (l.isEmpty()) {
                         TextView emptiness = new TextView(getActivity());
@@ -57,12 +56,10 @@ public class SuggestedFragment extends Fragment implements MainActivity.Fragment
 
                        textTitle.setText(((MainActivity) requireActivity()).db_manager.getBookField(id, "Title"));
                        textAuthor.setText("by: " + ((MainActivity) requireActivity()).db_manager.getBookField(id, "Author"));
-                       ((MainActivity) requireActivity()).setBookCover(getContext(), imageView,
+                       ((MainActivity) requireActivity()).setBookCover(requireContext(), imageView,
                                ((MainActivity) requireActivity()).db_manager.getBookCover(id));
                        textTags.setText(((MainActivity) requireActivity()).db_manager.getBookTags(id));
-                       listItem.setOnClickListener(v -> {
-                           ((MainActivity) requireActivity()).showBookInfoBottomSheet(id);
-                       });
+                       listItem.setOnClickListener(v -> ((MainActivity) requireActivity()).showBookInfoBottomSheet(id));
 
                        linearLayout.addView(listItem);
                    }

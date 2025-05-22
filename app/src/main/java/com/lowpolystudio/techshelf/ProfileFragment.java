@@ -38,12 +38,10 @@ public class ProfileFragment extends Fragment {
         logoutButton.setOnClickListener(v -> {
             auth.signOut();
             startActivity(new Intent(getActivity(), LoginActivity.class));
-            requireActivity().finish(); // close MainActivity
+            requireActivity().finish();
         });
 
-        prefChangeButton.setOnClickListener(v -> {
-            startActivity(new Intent(requireActivity(), PreferenceActivity.class));
-        });
+        prefChangeButton.setOnClickListener(v -> startActivity(new Intent(requireActivity(), PreferenceActivity.class)));
 
         return view;
     }

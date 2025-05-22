@@ -1,6 +1,5 @@
 package com.lowpolystudio.techshelf;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,8 +34,8 @@ public class SearchFragment extends Fragment {
         List<String> languages = ((MainActivity) requireActivity()).db_manager.getTagsByType("language");
         List<String> purposes = ((MainActivity) requireActivity()).db_manager.getTagsByType("purpose");
 
-        ArrayAdapter<String> lang_adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, languages);
-        ArrayAdapter<String> purpose_adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, purposes);
+        ArrayAdapter<String> lang_adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, languages);
+        ArrayAdapter<String> purpose_adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, purposes);
 
         languageSpinner.setAdapter(lang_adapter);
         purposeSpinner.setAdapter(purpose_adapter);
@@ -59,9 +58,7 @@ public class SearchFragment extends Fragment {
                             ImageView cover = bookItem.findViewById(R.id.item_image);
                             title.setText(((MainActivity) requireActivity()).db_manager.getBookField(bookId, "Title"));
                             ((MainActivity) requireActivity()).setBookCover(getContext(), cover, ((MainActivity) requireActivity()).db_manager.getBookCover(bookId));
-                            bookItem.setOnClickListener(v -> {
-                                ((MainActivity) requireActivity()).showBookInfoBottomSheet(bookId);
-                            });
+                            bookItem.setOnClickListener(v -> ((MainActivity) requireActivity()).showBookInfoBottomSheet(bookId));
                             layout.addView(bookItem);
                         }
                     }

@@ -64,6 +64,7 @@ public class PreferenceActivity extends AppCompatActivity {
         prefs.put("languages", languages);
         prefs.put("purposes", purposes);
 
+        assert user != null;
         db.collection("users")
                 .document(user.getUid())
                 .collection("preferences") // or .document("settings") if you prefer

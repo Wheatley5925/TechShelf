@@ -33,7 +33,6 @@ import android.widget.ToggleButton;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -96,12 +95,6 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        List<String> langs = Arrays.asList("Java", "Python", "C#");
-        List<String> purps = Arrays.asList("Web", "Gamedev");
-
-        List<Integer> bookIds = db_manager.getBookIdsForPreferences(langs, purps);
-        Log.d("BOOK_RESULTS", "Book IDs: " + bookIds);
-
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
@@ -126,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        // Загружаем фрагмент по умолчанию
         if (savedInstanceState == null) {
             SuggestedFragment fragment = new SuggestedFragment();
             getSupportFragmentManager().beginTransaction()
@@ -141,13 +133,11 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     public void showBookInfoBottomSheet(int i) {
-        // Создаем BottomSheetDialog
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         bottomSheetDialog.setContentView(R.layout.book_info);
         bottomSheetDialog.setCancelable(true);
         bottomSheetDialog.setCanceledOnTouchOutside(true);
 
-        // Настраиваем элементы внутри диалога
         ImageView bookCover = bottomSheetDialog.findViewById(R.id.dialog_book_image);
         TextView bookTitle = bottomSheetDialog.findViewById(R.id.dialog_book_title);
         TextView bookAuthor = bottomSheetDialog.findViewById(R.id.dialog_book_author);
@@ -156,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
         Button start_reading_btn = bottomSheetDialog.findViewById(R.id.start_reading_btn);
         ToggleButton favorite_btn = bottomSheetDialog.findViewById(R.id.favorite_button);
 
-        // Устанавливаем данные
         assert bookCover != null;
         setBookCover(this, bookCover, db_manager.getBookCover(i));
         assert bookTitle != null;
@@ -168,7 +157,6 @@ public class MainActivity extends AppCompatActivity {
         assert bookDescription != null;
         bookDescription.setText(db_manager.getBookField(i, "Description"));
 
-        // Установка обработчика нажатия
         bookCover.setOnClickListener(v -> {
             FullScreenImageDialog dialog =
                     FullScreenImageDialog.newInstance(db_manager.getBookCover(i));
@@ -184,15 +172,12 @@ public class MainActivity extends AppCompatActivity {
         assert favorite_btn != null;
         favorite_btn.setOnCheckedChangeListener(null);
 
-        favRef.get().addOnSuccessListener(doc -> {
-            favorite_btn.setChecked(doc.exists());
-        });
+        favRef.get().addOnSuccessListener(doc -> favorite_btn.setChecked(doc.exists()));
 
         favorite_btn.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                // Add to favorites
                 Map<String, Object> data = new HashMap<>();
-                data.put("timestamp", FieldValue.serverTimestamp()); // optional
+                data.put("timestamp", FieldValue.serverTimestamp());
 
                 favRef.set(data)
                         .addOnSuccessListener(aVoid ->
@@ -201,7 +186,6 @@ public class MainActivity extends AppCompatActivity {
                                 Log.e("Favorites", "Failed to add", e));
 
             } else {
-                // Remove from favorites
                 favRef.delete()
                         .addOnSuccessListener(aVoid ->
                                 Log.d("Favorites", "Removed from favorites"))
@@ -221,14 +205,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void setBookCover(Context context, ImageView imageView, String imageName) {
         try {
-            // Путь к файлу в папке assets
             InputStream inputStream = context.getAssets().open("bookImgs/" + imageName);
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
             imageView.setImageBitmap(bitmap);
             inputStream.close();
         } catch (IOException e) {
             if (e.getCause() != null)
-                // Установим стандартную обложку, если изображение не найдено
                 imageView.setImageResource(R.drawable.book);
         }
     }
@@ -309,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
+        assert user != null;
         firestore.collection("users")
                 .document(user.getUid())
                 .collection("preferences")

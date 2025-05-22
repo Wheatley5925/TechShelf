@@ -1,22 +1,20 @@
 package com.lowpolystudio.techshelf;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,10 +35,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class PdfViewerActivity extends AppCompatActivity {
@@ -72,8 +68,9 @@ public class PdfViewerActivity extends AppCompatActivity {
             File file = getFileFromAssets(this, "books/" + PDF_FILE_NAME);
             openPdf(file);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("FILE_ERROR", PDF_FILE_NAME + " could not be opened");
         }
+
         btnExit.setOnClickListener(v -> exitBookView());
         btnBookmark.setOnClickListener(v -> showBookmarkPopup());
         btnPage.setOnClickListener(v -> showPageInputDialog());
@@ -162,10 +159,6 @@ public class PdfViewerActivity extends AppCompatActivity {
             return outFile;
         }
 
-        if (!outFile.getParentFile().exists()) {
-            outFile.getParentFile().mkdirs();
-        }
-
         InputStream inputStream = context.getAssets().open(assetFileName);
         FileOutputStream outputStream = new FileOutputStream(outFile);
 
@@ -223,7 +216,7 @@ public class PdfViewerActivity extends AppCompatActivity {
     }
 
     public void showBookmarkPopup() {
-        View popupView = LayoutInflater.from(this).inflate(R.layout.dialog_bookmarks, null);
+        @SuppressLint("InflateParams") View popupView = LayoutInflater.from(this).inflate(R.layout.dialog_bookmarks, null);
         PopupWindow popupWindow = new PopupWindow(popupView,
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -233,9 +226,7 @@ public class PdfViewerActivity extends AppCompatActivity {
         popupWindow.showAtLocation(findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
         FloatingActionButton bookmarkAdd = popupView.findViewById(R.id.bookmark_add_button);
 
-        bookmarkAdd.setOnClickListener(v -> {
-            addBookmark(pdfView.getCurrentPage(), popupView, popupWindow);
-        });
+        bookmarkAdd.setOnClickListener(v -> addBookmark(pdfView.getCurrentPage(), popupView, popupWindow));
 
         loadBookmarksInto(popupView, popupWindow);
     }
@@ -243,7 +234,7 @@ public class PdfViewerActivity extends AppCompatActivity {
     private void loadBookmarksInto(View popupView, PopupWindow popupWindow) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String bookId = "" + this.bookId; // get this from your context
+        String bookId = "" + PdfViewerActivity.bookId; // get this from your context
 
         LinearLayout container = popupView.findViewById(R.id.bookmark_list_container);
 
@@ -263,7 +254,7 @@ public class PdfViewerActivity extends AppCompatActivity {
 
                         if (page == null || timestamp == null) continue;
 
-                        View bookmarkView = LayoutInflater.from(this).inflate(R.layout.bookmark_item, null);
+                        @SuppressLint("InflateParams") View bookmarkView = LayoutInflater.from(this).inflate(R.layout.bookmark_item, null);
                         TextView bookmarkText = bookmarkView.findViewById(R.id.bookmark_text);
                         ImageButton bookmarkDelete = bookmarkView.findViewById(R.id.delete_button);
 
@@ -309,7 +300,7 @@ public class PdfViewerActivity extends AppCompatActivity {
         data.put("page", page);
         data.put("timestamp", time);
 
-        View bookmarkView = LayoutInflater.from(this).inflate(R.layout.bookmark_item, null);
+        @SuppressLint("InflateParams") View bookmarkView = LayoutInflater.from(this).inflate(R.layout.bookmark_item, null);
 
         assert user != null;
         db.collection("users")
@@ -325,6 +316,7 @@ public class PdfViewerActivity extends AppCompatActivity {
                         TextView bookmarkText = bookmarkView.findViewById(R.id.bookmark_text);
                         ImageButton bookmarkDelete = bookmarkView.findViewById(R.id.delete_button);
 
+                        assert timestamp != null;
                         bookmarkText.setText("Page " + (page + 1) + " — " +
                                 android.text.format.DateFormat.format("dd MMM yyyy HH:mm",
                                         timestamp.toDate()));

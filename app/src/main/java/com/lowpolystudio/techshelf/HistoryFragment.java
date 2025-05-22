@@ -62,6 +62,7 @@ public class HistoryFragment extends Fragment {
                             // Skip if null
                             if (lastPage == null || timestamp == null) continue;
 
+                            assert bookId != null;
                             int bookIndex = bookId.intValue();
 
                             View listItem = LayoutInflater.from(getContext())
@@ -85,7 +86,7 @@ public class HistoryFragment extends Fragment {
                             progressBar.setProgress(progress, true);
                             textProgress.setText(lastPageInt + 1 + " / " + pageCount + "  ");
 
-                            ((MainActivity) requireActivity()).setBookCover(getContext(), imageView,
+                            ((MainActivity) requireActivity()).setBookCover(requireContext(), imageView,
                                     ((MainActivity) requireActivity()).db_manager.getBookCover(bookIndex));
 
                             listItem.setOnClickListener(v -> {

@@ -4,18 +4,16 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class dbManager {
     private SQLiteDatabase db;
-    private dbHelper db_helper;
+    private final dbHelper db_helper;
 
     public dbManager(Context context) {
         db_helper = new dbHelper(context);
@@ -44,22 +42,20 @@ public class dbManager {
                 "WHERE BookTags.BookID = ?";
 
         Cursor cursor = db.rawQuery(sql, new String[]{String.valueOf(bookId)});
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                tags.add(cursor.getString(0));
-            }
-            cursor.close();
+        while (cursor.moveToNext()) {
+            tags.add(cursor.getString(0));
         }
+        cursor.close();
 
-        String result = "";
+        StringBuilder result = new StringBuilder();
 
         for (int i = 0; i < tags.size(); i++)
             if (i < tags.size() - 1)
-                result += tags.get(i) + ", ";
+                result.append(tags.get(i)).append(", ");
             else
-                result += tags.get(i);
+                result.append(tags.get(i));
 
-        return result;
+        return result.toString();
     }
 
     public String getBookCover(int bookId) {
@@ -69,7 +65,7 @@ public class dbManager {
                 new String[]{String.valueOf(bookId)},
                 null, null, null);
 
-        if (cursor != null && cursor.moveToFirst()) {
+        if (cursor.moveToFirst()) {
             String coverImage = cursor.getString(cursor.getColumnIndexOrThrow("ImgName"));
             cursor.close();
             return coverImage;
@@ -84,7 +80,7 @@ public class dbManager {
                 new String[]{String.valueOf(bookId)},
                 null, null, null);
 
-        if (cursor != null && cursor.moveToFirst()) {
+        if (cursor.moveToFirst()) {
             String result = cursor.getString(cursor.getColumnIndexOrThrow(field));
             cursor.close();
             return result;
@@ -102,12 +98,10 @@ public class dbManager {
                 new String[]{type},
                 null, null, "Name"
         );
-        if (c != null) {
-            while (c.moveToNext()) {
-                list.add(c.getString(0));
-            }
-            c.close();
+        while (c.moveToNext()) {
+            list.add(c.getString(0));
         }
+        c.close();
         return list;
     }
 
@@ -122,12 +116,10 @@ public class dbManager {
 
         Cursor cursor = db.rawQuery(query, new String[]{tag1, tag2});
         List<Integer> bookIds = new ArrayList<>();
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                bookIds.add(cursor.getInt(0));
-            }
-            cursor.close();
+        while (cursor.moveToNext()) {
+            bookIds.add(cursor.getInt(0));
         }
+        cursor.close();
         return bookIds;
     }
 
@@ -168,12 +160,10 @@ public class dbManager {
         args.addAll(purposes);   // purposes second
 
         Cursor cursor = db.rawQuery(sql, args.toArray(new String[0]));
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                result.add(cursor.getInt(0));
-            }
-            cursor.close();
+        while (cursor.moveToNext()) {
+            result.add(cursor.getInt(0));
         }
+        cursor.close();
 
         return result;
     }
