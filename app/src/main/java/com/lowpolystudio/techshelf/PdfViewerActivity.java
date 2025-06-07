@@ -1,5 +1,6 @@
 package com.lowpolystudio.techshelf;
 
+import com.google.firebase.firestore.QuerySnapshot;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -26,6 +27,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -39,6 +41,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * PdfViewerActivity.java
+ * 
+ * This activity handles the display of PDF books to the user.
+ * It supports bookmarking pages, tracking reading history,
+ * and integrating with Firebase Firestore for persistence.
+ */
+
+
 public class PdfViewerActivity extends AppCompatActivity {
 
     public FirebaseFirestore db;
@@ -50,6 +61,14 @@ public class PdfViewerActivity extends AppCompatActivity {
     private int totalPages = 0;
 
     @Override
+    /**
+     * Called when the activity is starting. Initializes Firebase,
+     * loads the PDF, and sets up UI components such as bookmark handling.
+     * 
+     * @param savedInstanceState If the activity is being re-initialized after
+     * being previously shut down then this Bundle contains the data it most
+     * recently supplied. Otherwise, it is null.
+     */
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -187,6 +206,12 @@ public class PdfViewerActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Checks if the current book exists in user's reading history and fetches the last read page.
+     * 
+     * @param bookId ID of the book to look up
+     * @param callback Callback returning the last read page number or null if not found
+     */
     public static void getLastPageIfInHistory(String bookId, MainActivity.Callback<Integer> callback) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -196,24 +221,30 @@ public class PdfViewerActivity extends AppCompatActivity {
             return;
         }
 
-        db.collection("users")
+        DocumentReference docRef = db.collection("users")
                 .document(user.getUid())
                 .collection("history")
-                .document(bookId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Long lastPage = documentSnapshot.getLong("lastPage");
-                        callback.onResult(lastPage != null ? lastPage.intValue() : null);
-                    } else {
-                        callback.onResult(null);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("FirestoreCheck", "Failed to check history", e);
+                .document(bookId);
+
+        FirestoreUtils.documentWithTimeoutAndFallback(docRef, 3000, new FirestoreUtils.DocumentCallback() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (documentSnapshot.exists()) {
+                    Long lastPage = documentSnapshot.getLong("lastPage");
+                    callback.onResult(lastPage != null ? lastPage.intValue() : null);
+                } else {
                     callback.onResult(null);
-                });
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e("FirestoreCheck", "Failed to check history from server and cache", e);
+                callback.onResult(null);
+            }
+        });
     }
+
 
     public void showBookmarkPopup() {
         @SuppressLint("InflateParams") View popupView = LayoutInflater.from(this).inflate(R.layout.dialog_bookmarks, null);
@@ -228,66 +259,86 @@ public class PdfViewerActivity extends AppCompatActivity {
 
         bookmarkAdd.setOnClickListener(v -> addBookmark(pdfView.getCurrentPage(), popupView, popupWindow));
 
+    /**
+     * Loads bookmarks for the current book into a popup view.
+     * 
+     * @param popupView The view to populate with bookmarks
+     * @param popupWindow The popup window that hosts the bookmark list
+     */
         loadBookmarksInto(popupView, popupWindow);
     }
 
+    /**
+     * Loads bookmarks for the current book into a popup view.
+     * 
+     * @param popupView The view to populate with bookmarks
+     * @param popupWindow The popup window that hosts the bookmark list
+     */
     private void loadBookmarksInto(View popupView, PopupWindow popupWindow) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String bookId = "" + PdfViewerActivity.bookId; // get this from your context
+        String bookId = "" + PdfViewerActivity.bookId;
 
         LinearLayout container = popupView.findViewById(R.id.bookmark_list_container);
-
         container.removeAllViews();
-        assert user != null;
-        db.collection("users")
+
+        if (user == null) return;
+
+        Query query = db.collection("users")
                 .document(user.getUid())
                 .collection("bookmarks")
                 .document(bookId)
                 .collection("pages")
-                .orderBy("timestamp", Query.Direction.ASCENDING)
-                .get()
-                .addOnSuccessListener(query -> {
-                    for (DocumentSnapshot doc : query) {
-                        Long page = doc.getLong("page");
-                        Timestamp timestamp = doc.getTimestamp("timestamp");
+                .orderBy("timestamp", Query.Direction.ASCENDING);
 
-                        if (page == null || timestamp == null) continue;
+        FirestoreUtils.queryWithTimeoutAndFallback(query, 3000, new FirestoreUtils.QueryCallback() {
+            @Override
+            public void onSuccess(QuerySnapshot query) {
+                for (DocumentSnapshot doc : query) {
+                    Long page = doc.getLong("page");
+                    Timestamp timestamp = doc.getTimestamp("timestamp");
 
-                        @SuppressLint("InflateParams") View bookmarkView = LayoutInflater.from(this).inflate(R.layout.bookmark_item, null);
-                        TextView bookmarkText = bookmarkView.findViewById(R.id.bookmark_text);
-                        ImageButton bookmarkDelete = bookmarkView.findViewById(R.id.delete_button);
+                    if (page == null || timestamp == null) continue;
 
-                        bookmarkText.setText("Page " + (page + 1) + " — " +
-                                android.text.format.DateFormat.format("dd MMM yyyy HH:mm",
-                                        timestamp.toDate()));
-                        bookmarkText.setPadding(8, 16, 8, 16);
-                        bookmarkView.setClickable(true);
-                        bookmarkView.setBackgroundResource(android.R.drawable.list_selector_background);
+                    @SuppressLint("InflateParams")
+                    View bookmarkView = LayoutInflater.from(popupView.getContext()).inflate(R.layout.bookmark_item, null);
+                    TextView bookmarkText = bookmarkView.findViewById(R.id.bookmark_text);
+                    ImageButton bookmarkDelete = bookmarkView.findViewById(R.id.delete_button);
 
-                        int goToPage = page.intValue();
-                        bookmarkView.setOnClickListener(v -> {
-                            pdfView.jumpTo(goToPage, true); // Your existing method
-                            popupWindow.dismiss();
-                        });
+                    bookmarkText.setText("Page " + (page + 1) + " — " +
+                            android.text.format.DateFormat.format("dd MMM yyyy HH:mm", timestamp.toDate()));
+                    bookmarkText.setPadding(8, 16, 8, 16);
+                    bookmarkView.setClickable(true);
+                    bookmarkView.setBackgroundResource(android.R.drawable.list_selector_background);
 
-                        bookmarkDelete.setOnClickListener(v -> {
-                            db.collection("users")
-                                    .document(user.getUid())
-                                    .collection("bookmarks")
-                                    .document(bookId)
-                                    .collection("pages")
-                                    .document(doc.getId())
-                                    .delete();
-                            container.removeView(bookmarkView);
-                        });
+                    int goToPage = page.intValue();
+                    bookmarkView.setOnClickListener(v -> {
+                        pdfView.jumpTo(goToPage, true);
+                        popupWindow.dismiss();
+                    });
 
-                        container.addView(bookmarkView);
-                    }
-                })
-                .addOnFailureListener(e ->
-                        Log.e("Bookmarks", "Failed to load bookmarks", e));
+                    bookmarkDelete.setOnClickListener(v -> {
+                        db.collection("users")
+                                .document(user.getUid())
+                                .collection("bookmarks")
+                                .document(bookId)
+                                .collection("pages")
+                                .document(doc.getId())
+                                .delete();
+                        container.removeView(bookmarkView);
+                    });
+
+                    container.addView(bookmarkView);
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e("Bookmarks", "Failed to load bookmarks from server or cache", e);
+            }
+        });
     }
+
 
     private void addBookmark(int page, View popupView, PopupWindow popupWindow) {
         LinearLayout container = popupView.findViewById(R.id.bookmark_list_container);

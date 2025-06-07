@@ -37,71 +37,80 @@ public class HistoryFragment extends Fragment {
     public void onDataLoaded() {
         if (getView() == null || historyContainer == null) return;
 
-        ((MainActivity) requireActivity()).db.collection("users")
+        Query query = ((MainActivity) requireActivity()).db
+                .collection("users")
                 .document(((MainActivity) requireActivity()).user.getUid())
                 .collection("history")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    historyContainer.removeAllViews();
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        TextView emptiness = new TextView(getActivity());
-                        emptiness.setText("Start reading to have reading history 😉");
-                        emptiness.setGravity(17);
+                .orderBy("timestamp", Query.Direction.DESCENDING);
 
-                        historyContainer.addView(emptiness);
+        FirestoreUtils.queryWithTimeoutAndFallback(query, 3000, new FirestoreUtils.QueryCallback() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                historyContainer.removeAllViews();
+
+                if (queryDocumentSnapshots.isEmpty()) {
+                    TextView emptiness = new TextView(getActivity());
+                    emptiness.setText("Start reading to have reading history 😉");
+                    emptiness.setGravity(17);
+                    historyContainer.addView(emptiness);
+                } else {
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        Long bookId = doc.getLong("bookId");
+                        Long lastPage = doc.getLong("lastPage");
+                        Long pageCount = doc.getLong("pageCount");
+                        Timestamp timestamp = doc.getTimestamp("timestamp");
+
+                        if (lastPage == null || timestamp == null) continue;
+
+                        int bookIndex = bookId != null ? bookId.intValue() : -1;
+
+                        if (!isAdded()) return;
+
+                        View listItem = LayoutInflater.from(getContext())
+                                .inflate(R.layout.history_item, historyContainer, false);
+
+                        ImageView imageView = listItem.findViewById(R.id.item_image);
+                        TextView textTitle = listItem.findViewById(R.id.item_title);
+                        TextView textLastOpened = listItem.findViewById(R.id.item_date);
+                        ProgressBar progressBar = listItem.findViewById(R.id.progressMeter);
+                        TextView textProgress = listItem.findViewById(R.id.progressText);
+
+                        String title = ((MainActivity) requireActivity()).db_manager.getBookField(bookIndex, "Title");
+
+                        textTitle.setText(title);
+                        textLastOpened.setText("Last opened: " +
+                                android.text.format.DateFormat.format("dd MMM yyyy HH:mm", timestamp.toDate()));
+
+                        int lastPageInt = lastPage.intValue();
+                        int progress = (int) ((lastPageInt / (float) pageCount) * 100);
+
+                        progressBar.setProgress(progress, true);
+                        textProgress.setText(lastPageInt + 1 + " / " + pageCount + "  ");
+
+                        ((MainActivity) requireActivity()).setBookCover(requireContext(), imageView,
+                                ((MainActivity) requireActivity()).db_manager.getBookCover(bookIndex));
+
+                        listItem.setOnClickListener(v -> {
+                            String fileName = ((MainActivity) requireActivity())
+                                    .db_manager.getBookField(bookIndex, "FileName");
+                            PdfViewerActivity.start(requireActivity(), fileName, bookIndex);
+                        });
+
+                        historyContainer.addView(listItem);
                     }
-                    else {
+                }
 
-                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                            Long bookId = doc.getLong("bookId");
-                            Long lastPage = doc.getLong("lastPage");
-                            Long pageCount = doc.getLong("pageCount");
-                            Timestamp timestamp = doc.getTimestamp("timestamp");
+                ProgressBar progressBar = getView().findViewById(R.id.history_loading);
+                progressBar.setVisibility(View.GONE);
+            }
 
-                            // Skip if null
-                            if (lastPage == null || timestamp == null) continue;
-
-                            assert bookId != null;
-                            int bookIndex = bookId.intValue();
-
-                            View listItem = LayoutInflater.from(getContext())
-                                    .inflate(R.layout.history_item, historyContainer, false);
-
-                            ImageView imageView = listItem.findViewById(R.id.item_image);
-                            TextView textTitle = listItem.findViewById(R.id.item_title);
-                            TextView textLastOpened = listItem.findViewById(R.id.item_date);
-                            ProgressBar progressBar = listItem.findViewById(R.id.progressMeter);
-                            TextView textProgress = listItem.findViewById(R.id.progressText);
-
-                            String title = ((MainActivity) requireActivity()).db_manager.getBookField(bookIndex, "Title");
-
-                            textTitle.setText(title);
-                            textLastOpened.setText("Last opened: " +
-                                    android.text.format.DateFormat.format("dd MMM yyyy HH:mm", timestamp.toDate()));
-
-                            int lastPageInt = lastPage.intValue();
-                            int progress = (int) ((lastPageInt / (float) pageCount) * 100);
-
-                            progressBar.setProgress(progress, true);
-                            textProgress.setText(lastPageInt + 1 + " / " + pageCount + "  ");
-
-                            ((MainActivity) requireActivity()).setBookCover(requireContext(), imageView,
-                                    ((MainActivity) requireActivity()).db_manager.getBookCover(bookIndex));
-
-                            listItem.setOnClickListener(v -> {
-                                var file_name = ((MainActivity) requireActivity()).db_manager.getBookField(bookIndex, "FileName");
-                                PdfViewerActivity.start(requireActivity(), file_name, bookIndex);
-                            });
-
-                            historyContainer.addView(listItem);
-                        }
-                    }
-                    ProgressBar progressBar = getView().findViewById(R.id.history_loading);
-                    progressBar.setVisibility(View.GONE);
-                })
-                .addOnFailureListener(e ->
-                        Log.e("FirestoreHistory", "Failed to load history", e));
+            @Override
+            public void onFailure(Exception e) {
+                Log.e("FirestoreHistory", "Failed to load history from both server and cache", e);
+                ProgressBar progressBar = getView().findViewById(R.id.history_loading);
+                progressBar.setVisibility(View.GONE);
+            }
+        });
     }
 
 }

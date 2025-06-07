@@ -20,17 +20,16 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         EditText emailInput, passwordInput;
-        Button emailLoginButton, registerButton;
+        Button emailLoginButton;
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login); // same layout or create a new one
+        setContentView(R.layout.activity_login);
 
         auth = FirebaseAuth.getInstance();
 
         emailInput = findViewById(R.id.emailEditText);
         passwordInput = findViewById(R.id.passwordEditText);
         emailLoginButton = findViewById(R.id.emailLoginButton);
-        registerButton = findViewById(R.id.registerButton);
 
         emailLoginButton.setOnClickListener(v -> {
             String email = emailInput.getText().toString().trim();
@@ -48,26 +47,6 @@ public class LoginActivity extends AppCompatActivity {
                             finish();
                         } else {
                             Toast.makeText(this, "Login failed: " + Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    });
-        });
-
-        registerButton.setOnClickListener(v -> {
-            String email = emailInput.getText().toString().trim();
-            String password = passwordInput.getText().toString().trim();
-
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Email and password required", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            auth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            startActivity(new Intent(this, MainActivity.class));
-                            finish();
-                        } else {
-                            Toast.makeText(this, "Registration failed: " + Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
         });

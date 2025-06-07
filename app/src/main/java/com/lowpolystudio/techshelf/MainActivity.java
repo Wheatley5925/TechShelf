@@ -16,6 +16,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -45,6 +47,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -66,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         if (user == null) {
-            startActivity(new Intent(this, LoginActivity.class));
+            startActivity(new Intent(this, WelcomeActivity.class));
             finish();
             return;
         }
@@ -126,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
                     .commit();
             getSupportFragmentManager().executePendingTransactions();
         }
-
 
         setDailyInactivityAlarm();
     }
@@ -221,23 +223,29 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        db.collection("users")
+        Query query = db.collection("users")
                 .document(user.getUid())
                 .collection("favorites")
-                .orderBy("timestamp", Query.Direction.DESCENDING)  // <-- sort by timestamp
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<String> favoriteBookIds = new ArrayList<>();
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        favoriteBookIds.add(doc.getId());
-                    }
-                    callback.onResult(favoriteBookIds);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Favorites", "Failed to fetch sorted favorites", e);
-                    callback.onResult(Collections.emptyList());
-                });
+                .orderBy("timestamp", Query.Direction.DESCENDING);
+
+        FirestoreUtils.queryWithTimeoutAndFallback(query, 3000, new FirestoreUtils.QueryCallback() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                List<String> favoriteBookIds = new ArrayList<>();
+                for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                    favoriteBookIds.add(doc.getId());
+                }
+                callback.onResult(favoriteBookIds);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e("Favorites", "Failed to fetch favorites from both server and cache", e);
+                callback.onResult(Collections.emptyList());
+            }
+        });
     }
+
 
     @Override
     protected void onResume() {
@@ -291,38 +299,41 @@ public class MainActivity extends AppCompatActivity {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
-        assert user != null;
-        firestore.collection("users")
+        if (user == null) {
+            Log.e("Preferences", "User not authenticated");
+            callback.onResult(Collections.emptyList());
+            return;
+        }
+
+        DocumentReference docRef = firestore.collection("users")
                 .document(user.getUid())
                 .collection("preferences")
-                .document("tags")
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        List<String> languages = (List<String>) doc.get("languages");
-                        List<String> purposes = (List<String>) doc.get("purposes");
+                .document("tags");
 
-                        if (languages != null && purposes != null &&
-                                !languages.isEmpty() && !purposes.isEmpty()) {
+        FirestoreUtils.getWithTimeoutAndFallback(docRef, 3000, new FirestoreUtils.FirestoreCallback() {
+            @Override
+            public void onSuccess(DocumentSnapshot doc) {
+                List<String> languages = (List<String>) doc.get("languages");
+                List<String> purposes = (List<String>) doc.get("purposes");
 
-                            List<Integer> bookIds = db_manager.getBookIdsForPreferences(languages, purposes);
-                            callback.onResult(bookIds);
+                if (languages != null && purposes != null &&
+                        !languages.isEmpty() && !purposes.isEmpty()) {
 
-                        } else {
-                            Log.w("Preferences", "Empty preferences found");
-                            callback.onResult(Collections.emptyList());
-                        }
-                    } else {
-                        Log.w("Preferences", "No preferences found in Firestore");
-                        callback.onResult(Collections.emptyList());
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Preferences", "Failed to load preferences", e);
+                    List<Integer> bookIds = db_manager.getBookIdsForPreferences(languages, purposes);
+                    callback.onResult(bookIds);
+                } else {
+                    Log.w("Preferences", "Preferences are empty or missing");
                     callback.onResult(Collections.emptyList());
-                });
-    }
+                }
+            }
 
+            @Override
+            public void onFailure(Exception e) {
+                Log.e("Preferences", "Failed to load preferences", e);
+                callback.onResult(Collections.emptyList());
+            }
+        });
+    }
 
     public interface FragmentDataListener {
         void onDataLoaded();

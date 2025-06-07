@@ -55,8 +55,10 @@ public class SearchFragment extends Fragment {
                         for (int bookId : results) {
                             View bookItem = LayoutInflater.from(getContext()).inflate(R.layout.list_item, container, false);
                             TextView title = bookItem.findViewById(R.id.item_title);
+                            TextView author = bookItem.findViewById(R.id.item_author);
                             ImageView cover = bookItem.findViewById(R.id.item_image);
                             title.setText(((MainActivity) requireActivity()).db_manager.getBookField(bookId, "Title"));
+                            author.setText(((MainActivity) requireActivity()).db_manager.getBookField(bookId, "Author"));
                             ((MainActivity) requireActivity()).setBookCover(getContext(), cover, ((MainActivity) requireActivity()).db_manager.getBookCover(bookId));
                             bookItem.setOnClickListener(v -> ((MainActivity) requireActivity()).showBookInfoBottomSheet(bookId));
                             layout.addView(bookItem);

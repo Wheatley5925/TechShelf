@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="vertical"
         android:padding="16dp"
         android:layout_width="match_parent"
@@ -11,14 +10,20 @@
 
         <Spinner
             android:id="@+id/language_spinner"
+            style="@style/Widget.AppCompat.Light.Spinner.DropDown.ActionBar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="50dp"
+            android:scrollbarSize="10dp"
+            android:spinnerMode="dropdown" />
 
         <Spinner
             android:id="@+id/purpose_spinner"
+            style="@style/Widget.AppCompat.Spinner.DropDown"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"/>
+            android:layout_height="50dp"
+            android:layout_marginTop="16dp"
+            android:scrollbarSize="10dp"
+            android:spinnerMode="dropdown" />
 
         <Button
             android:id="@+id/search_button"

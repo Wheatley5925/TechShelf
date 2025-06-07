@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import androidx.fragment.app.Fragment;
 public class SuggestedFragment extends Fragment implements MainActivity.FragmentDataListener {
 
     private LinearLayout linearLayout;
+    private ProgressBar progressBar;
 
     @Nullable
     @Override
@@ -23,6 +25,7 @@ public class SuggestedFragment extends Fragment implements MainActivity.Fragment
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.suggested_fragment, container, false);
         linearLayout = view.findViewById(R.id.linearLayout);
+        progressBar = view.findViewById(R.id.progressBar);
         return view;
     }
 
@@ -38,6 +41,7 @@ public class SuggestedFragment extends Fragment implements MainActivity.Fragment
             if (linearLayout != null) {
                 linearLayout.removeAllViews();
                 ((MainActivity) requireActivity()).loadBooksByUserPreferences(l -> {
+                    if (!isAdded()) return;
                     if (l.isEmpty()) {
                         TextView emptiness = new TextView(getActivity());
                         emptiness.setText("We couldn't suggest anything for you to read... Yet");
@@ -63,7 +67,7 @@ public class SuggestedFragment extends Fragment implements MainActivity.Fragment
 
                        linearLayout.addView(listItem);
                    }
-
+                    progressBar.setVisibility(View.GONE);
                 });
             }
         }

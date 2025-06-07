@@ -31,16 +31,17 @@ public class FavoritesFragment extends Fragment implements MainActivity.Fragment
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        onDataLoaded();  // Вызов после создания View
+        onDataLoaded();
     }
 
-    // Метод для добавления книг в LinearLayout
     @Override
     public void onDataLoaded() {
         if (getView() != null) {
             if (favoritesContainer != null) {
-                favoritesContainer.removeAllViews();  // Очищаем перед добавлением новых книг
+                favoritesContainer.removeAllViews();
                 ((MainActivity) requireActivity()).getFavoriteBookIds(fav_ids -> {
+
+                    if (!isAdded()) return;
                     if (fav_ids.isEmpty()) {
                         TextView emptiness = new TextView(getActivity());
                         emptiness.setText("You didn't add any books to favorites yet...");

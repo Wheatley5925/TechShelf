@@ -67,7 +67,7 @@ public class PreferenceActivity extends AppCompatActivity {
         assert user != null;
         db.collection("users")
                 .document(user.getUid())
-                .collection("preferences") // or .document("settings") if you prefer
+                .collection("preferences")
                 .document("tags")
                 .set(prefs)
                 .addOnSuccessListener(aVoid -> {
